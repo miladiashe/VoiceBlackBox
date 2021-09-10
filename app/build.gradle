@@ -6,6 +6,7 @@ plugins {
 android {
     buildFeatures {
         viewBinding true
+        mlModelBinding true
     }
     compileSdk 30
 
@@ -44,6 +45,8 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.0'
     implementation files('libs\\jlibrosa-1.1.8-SNAPSHOT-jar-with-dependencies.jar')
     implementation 'com.google.android.gms:play-services-tasks:17.2.1'
+    implementation 'org.tensorflow:tensorflow-lite-support:0.1.0'
+    implementation 'org.tensorflow:tensorflow-lite-metadata:0.1.0'
     //내가 쓰려고 넣은 자바 라이브러리
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
