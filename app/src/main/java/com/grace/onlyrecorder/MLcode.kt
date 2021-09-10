@@ -103,8 +103,8 @@ class MLcode(private val context: Context) {
 
     }
 
-    fun classifyAsync(filename: String): Task<String> {
-        val task = TaskCompletionSource<String>()
+    fun classifyAsync(filename: String): Task<Boolean> {
+        val task = TaskCompletionSource<Boolean>()
         executorService.execute {
             val result = classify(filename)
             task.setResult(result)
@@ -142,6 +142,3 @@ class MLcode(private val context: Context) {
     }
 }
 
-private operator fun FloatArray.compareTo(d: Double): Int {
-
-}
