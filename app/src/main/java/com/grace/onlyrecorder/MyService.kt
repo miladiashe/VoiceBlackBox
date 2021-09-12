@@ -88,7 +88,7 @@ class MyService : Service() {
             state = false
             Toast.makeText(this, "녹음을 중지합니다. \n" +
                     "저장경로: ${fileFullName}", Toast.LENGTH_LONG).show()
-            checkTone("${fileFullName}")
+            #checkTone("${fileFullName}")
         } else {
             Toast.makeText(this, "녹음중이 아닙니다.", Toast.LENGTH_SHORT).show()
         }
