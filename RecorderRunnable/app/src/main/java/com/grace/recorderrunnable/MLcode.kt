@@ -93,7 +93,6 @@ class MLcode(private val context: Context) {
         // Post-processing: find the digit that has the highest probability
         // and return it a human-readable string.
         val result = output[0]
-        Toast.makeText(this.context, "ㅗㅗㅗㅗㅗㅗㅗ", Toast.LENGTH_SHORT).show()
         return result > 0.5
     }
 
