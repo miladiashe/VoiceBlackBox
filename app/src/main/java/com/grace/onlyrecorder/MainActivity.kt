@@ -60,6 +60,7 @@ class MainActivity: BaseActivity() {
     fun serviceStart() {
         val intent = Intent(this, MyService::class.java)
         startService(intent)
+
         flag = true
         thread(start=true) {
             while (flag) {

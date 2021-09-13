@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.AssetManager
 
 import android.util.Log
+import android.widget.Toast
 import com.google.android.gms.tasks.*
 import com.jlibrosa.*
 import com.jlibrosa.audio.wavFile.WavFile
@@ -18,7 +19,6 @@ import java.nio.channels.FileChannel
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import com.jlibrosa.audio.JLibrosa
-
 
 
 
@@ -76,14 +76,14 @@ class MLcode(private val context: Context) {
         return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
     }
 
-    private fun classify(filename: String): Boolean {
+    fun classify(filename: String): Boolean {
         check(isInitialized) { "TF Lite Interpreter is not initialized yet." }
 
         // TODO: Add code to run inference with TF Lite.
         // Pre-processing: resize the input image to match the model input shape.
 
         // Define an array to store the model output.
-        val output = Array(1) { FloatArray(OUTPUT_CLASSES_COUNT) }
+        val output = FloatArray(1) { 0F }
         val audioFeatureValues = jLibrosa.loadAndRead(filename, -1, -1)
 
 
@@ -93,14 +93,8 @@ class MLcode(private val context: Context) {
         // Post-processing: find the digit that has the highest probability
         // and return it a human-readable string.
         val result = output[0]
-
-        if(result > 0.5){
-            return true
-        }
-        else{
-            return false
-        }
-
+        val show = Toast.makeText(this.context, "ㅗㅗㅗㅗㅗㅗㅗ", Toast.LENGTH_SHORT).show()
+        return result > 0.5
     }
 
     fun classifyAsync(filename: String): Task<Boolean> {
@@ -111,6 +105,8 @@ class MLcode(private val context: Context) {
         }
         return task.task
     }
+
+
 
     /*private fun convertBitmapToByteBuffer(wavFile: WavFile): ByteBuffer {
         val byteBuffer = ByteBuffer.allocateDirect(modelInputSize)

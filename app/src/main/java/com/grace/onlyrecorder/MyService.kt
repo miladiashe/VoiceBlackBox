@@ -3,13 +3,9 @@ package com.grace.onlyrecorder
 import android.app.Service
 import android.content.Intent
 import android.media.MediaRecorder
-import android.os.Binder
 import android.os.Environment
-import android.os.FileUtils
 import android.os.IBinder
-import android.util.Log
 import android.widget.Toast
-import org.tensorflow.lite.Interpreter
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -23,7 +19,7 @@ class MyService : Service() {
     var state: Boolean = false
     var fileFullName: String? = null
 //    var fileName: String? = null
-
+    private var myMLcode = MLcode(this)
     var fileList= mutableListOf<String>()
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -52,6 +48,7 @@ class MyService : Service() {
         mediaRecorder?.setOutputFormat((MediaRecorder.OutputFormat.MPEG_4))
         mediaRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
         mediaRecorder?.setOutputFile(fileFullName)
+
 
         try {
             mediaRecorder?.prepare()
@@ -88,7 +85,7 @@ class MyService : Service() {
             state = false
             Toast.makeText(this, "녹음을 중지합니다. \n" +
                     "저장경로: ${fileFullName}", Toast.LENGTH_LONG).show()
-            #checkTone("${fileFullName}")
+            checkTone("${fileFullName}")
         } else {
             Toast.makeText(this, "녹음중이 아닙니다.", Toast.LENGTH_SHORT).show()
         }
@@ -104,7 +101,7 @@ class MyService : Service() {
     fun checkTone(fileName: String) {
         var fileToCheck = fileList.get(0)
         var result = false // 어조가 언어 폭력이 아니라면
-
+        myMLcode.initialize()
 
         // 여기에 판별 코드 넣어줘~
 
@@ -115,10 +112,14 @@ class MyService : Service() {
         //4. 50% 이상이면 true를 반환한다
 
 
-        if ((fileName != null) && (mlcode.isInitialized)) {
-            mlcode
+        result = mlcode.classify(fileName)
+
+       /* if ((fileName != null) && (myMLcode.isInitialized)) {
+            myMLcode
                 .classifyAsync(fileName)
-        }
+        }*/
+
+
     }
 
 
