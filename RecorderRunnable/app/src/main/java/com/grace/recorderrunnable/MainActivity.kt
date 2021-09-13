@@ -14,9 +14,10 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.grace.recorderrunnable.databinding.ActivityMainBinding
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.util.zip.Inflater
+
+
 
 
 class MainActivity : BaseActivity() {
@@ -30,9 +31,8 @@ class MainActivity : BaseActivity() {
     var resultCheckwords = false
 
     var recorderThread = Recorder()
-    var recorderHandler = recorderThread.recorderHandler
-    val msg = Message()
 
+    var speechServiceState: Boolean = false
     var serviceState: Boolean = false
 
     val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
@@ -45,16 +45,34 @@ class MainActivity : BaseActivity() {
 
         makeBadwordsList()
 
-        var intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getPackageName());
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ko-KR");
-
         binding.btnStart.setOnClickListener {
-            startService()
+            binding.btnStart.visibility = View.INVISIBLE
+            binding.btnStop.visibility = View.VISIBLE
+
+            toast("녹음을 시작합니다.")
+            Log.d("test","서브 시작")
+            if (recorderThread.state == Thread.State.NEW) {
+                recorderThread.serviceState = true
+                recorderThread.start()
+                Log.d("test","서브 스레드 상태: ${recorderThread.state}")
+            }
+
+            // speechRecognition()
+
         }
 
         binding.btnStop.setOnClickListener {
-            stopService()
+            binding.btnStart.visibility = View.VISIBLE
+            binding.btnStop.visibility = View.INVISIBLE
+            serviceState = false
+
+            toast("저장 후 녹음을 종료합니다.")
+            //if (recorderThread.state == Thread.State.RUNNABLE) {
+                recorderThread.serviceState = false
+                recorderThread.recorderHandler.sendEmptyMessage(0)
+                Log.d("test", "진행하다가 서브에게 종료신호 보냈다.")
+            //}
+            Log.d("test","서비스 종료")
         }
     }
 
@@ -84,45 +102,26 @@ class MainActivity : BaseActivity() {
         Toast.makeText(MainApplication.applicationContext(), message, durationTime).show()
     }
 
-    fun startService() {
-        Log.d("test","startService() 시작")
-        serviceState = true
-        binding.btnStart.visibility = View.INVISIBLE
-        binding.btnStop.visibility = View.VISIBLE
-
-        speechRecognition()
-
-        if (recorderThread.state == Thread.State.NEW) {
-            recorderThread.start()
-        }
-        msg.arg1 = 1
-        recorderHandler!!.handleMessage(msg)
-        Log.d("test","startService() 끝")
-    }
-
-    fun stopService(){
-        Log.d("test","stopService() 시작")
-        serviceState = false
-        binding.btnStart.visibility = View.VISIBLE
-        binding.btnStop.visibility = View.INVISIBLE
-
-        msg.arg1 = 0
-        recorderHandler!!.handleMessage(msg)
-        Log.d("test","stopService() 끝")
-    }
-
     fun speechRecognition() {
         Log.d("test","speechRecognition() 시작")
+        if (!speechServiceState) {
+            speechServiceState = true
 
-        val mRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
-        mRecognizer.setRecognitionListener(listener())
+            var intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getPackageName());
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ko-KR");
 
-        try{
-            mRecognizer.startListening(intent)
-        } catch (e : Exception) {
-            toast("오류가 발생했습니다.")
+            var mRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
+            mRecognizer.setRecognitionListener(listener())
+
+            try {
+                mRecognizer.startListening(intent)
+            } catch (e: Exception) {
+                toast("예외처리 오류가 발생했습니다.")
+                Log.d("test", "예외처리 오류가 발생했습니다.")
+            }
+            Log.d("test", "speechRecognition() 끝")
         }
-        Log.d("test","speechRecognition() 끝")
     }
 
     fun listener() = object: RecognitionListener {
@@ -148,23 +147,36 @@ class MainActivity : BaseActivity() {
 
         override fun onError(error: Int) {
             toast("오류가 발생하였습니다.")
+            Log.d("test","speechRecognition() 오류발생")
+
+            speechServiceState = false
 
             if (serviceState){
+                Thread.sleep(500)
                 toast("다시 실행합니다.")
                 speechRecognition()
             }
         }
 
         override fun onResults(results: Bundle?) {
-            toast("음성인식을 종료합니다.")
+            Log.d("test","onResults() 시작")
 
             recordedWords = results!!.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)!![0]
             binding.textView.text = recordedWords
             checkBadwords()
 
-            if (serviceState){
-                toast("다시 실행합니다.")
-                speechRecognition()
+            speechServiceState = false
+
+            if (serviceState) {
+                if (resultCheckwords) {
+                    Thread.sleep(30000)
+                    Log.d("test", "onResults() 음성인식 다시 시작")
+                    speechRecognition()
+                } else {
+                    Thread.sleep(500)
+                    Log.d("test", "onResults() 음성인식 다시 시작")
+                    speechRecognition()
+                }
             }
         }
 
@@ -188,20 +200,18 @@ class MainActivity : BaseActivity() {
 
     fun checkBadwords() {
         Log.d("test","checkBadwords() 시작")
+        Log.d("test","들어온 말: ${recordedWords}")
         for (badWord in badWordSet) {
             resultCheckwords = recordedWords!!.contains(badWord)
 
             if (resultCheckwords) {
-                msg.arg2 = 1
-                recorderHandler!!.handleMessage(msg)
+                recorderThread.resultCheckWords = true
                 break
             } else {
-                msg.arg2 = 0
-                recorderHandler!!.handleMessage(msg)
+                recorderThread.resultCheckWords = false
             }
         }
-        Log.d("test","recordedWords: ${recordedWords}")
-        Log.d("test","wordsCheck: ${resultCheckwords}")
         Log.d("test","checkBadwords() 종료")
+        Log.d("test","checkBadwords() 결과 ${recorderThread.resultCheckWords}")
     }
 }
