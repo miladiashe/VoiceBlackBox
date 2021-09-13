@@ -21,10 +21,20 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="340dp"
-        android:onClick="serviceStart"
+        android:onClick="startProcessing"
         android:text="START"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="11dp"
+        android:layout_marginTop="21dp"
+        android:text="TextView"
+        app:layout_constraintStart_toStartOf="@+id/btnStop"
+        app:layout_constraintTop_toBottomOf="@+id/btnStop" />
 </androidx.constraintlayout.widget.ConstraintLayout>

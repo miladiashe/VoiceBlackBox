@@ -4,10 +4,17 @@ import android.app.Service
 import android.content.Intent
 import android.media.MediaRecorder
 import android.os.Binder
+import android.os.Bundle
 import android.os.Environment
 import android.os.IBinder
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.util.Log
 import android.widget.Toast
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -20,25 +27,24 @@ class MyService : Service() {
     var mediaRecorder: MediaRecorder? = null
     var state: Boolean = false
     var fileFullName: String? = null
-//    var fileName: String? = null
-
     var fileList= mutableListOf<String>()
+
+    var resultCheckTone = true
+
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startRecording()
-        //Log.d("StartedService", "state = $state")
+                startRecording()
+
 
         return super.onStartCommand(intent, flags, startId)
     }
 
     override fun onDestroy() {
         stopRecording()
-        //checkTone()
-        //Log.d("Service", "서비스가 종료되었습니다.")
         super.onDestroy()
     }
 
@@ -55,7 +61,7 @@ class MyService : Service() {
             mediaRecorder?.prepare()
             mediaRecorder?.start()
             state = true
-            Toast.makeText(this, "녹음을 시작합니다.", Toast.LENGTH_SHORT).show()
+            toast("녹음을 시작합니다.")
         } catch (e: IllegalStateException){
             e.printStackTrace()
         } catch (e: IOException){
@@ -84,24 +90,29 @@ class MyService : Service() {
             mediaRecorder?.reset()
             mediaRecorder?.release()
             state = false
-            Toast.makeText(this, "녹음을 중지합니다. \n" +
-                    "저장경로: ${fileFullName}", Toast.LENGTH_LONG).show()
+            toast("녹음을 중지합니다.")
             checkTone()
         } else {
-            Toast.makeText(this, "녹음중이 아닙니다.", Toast.LENGTH_SHORT).show()
+            toast("녹음중이 아닙니다.")
         }
     }
 
     fun checkTone() {
         var fileToCheck = fileList.get(0)
-        var result = false // 기본값은 저장을 위한 true 즉, "언어폭력"이다.
+        //var result = false // 기본값은 저장을 위한 true 즉, "언어폭력"이다.
 
         // 딥러닝 코드 들어갈 자리
 
-        if (!result) {
+        if (!resultCheckTone ) {
             val fileToDel = File(fileToCheck)
             fileToDel.delete()
             fileList.removeAt(0)
         }
+    }
+
+    fun toast(message: String, duration: Int = 0) {
+        var durationTime = Toast.LENGTH_SHORT
+        if (duration != 0) durationTime = Toast.LENGTH_LONG
+        Toast.makeText(MainApplication.applicationContext(), message, durationTime).show()
     }
 }
