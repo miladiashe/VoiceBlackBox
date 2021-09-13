@@ -66,7 +66,7 @@ class MyService : Service() {
         val sdf = SimpleDateFormat("yyyyMMdd_HHmmss")
         val filename = sdf.format(System.currentTimeMillis())
 
-        return "$filename.mp3"
+        return "$filename.wav"
     }
 
     fun newDir(): String {
