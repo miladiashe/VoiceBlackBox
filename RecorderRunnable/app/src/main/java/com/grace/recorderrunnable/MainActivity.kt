@@ -49,15 +49,7 @@ class MainActivity : BaseActivity() {
             binding.btnStart.visibility = View.INVISIBLE
             binding.btnStop.visibility = View.VISIBLE
 
-            toast("녹음을 시작합니다.")
-            Log.d("test","서브 시작")
-            if (recorderThread.state == Thread.State.NEW) {
-                recorderThread.serviceState = true
-                recorderThread.start()
-                Log.d("test","서브 스레드 상태: ${recorderThread.state}")
-            }
-
-            // speechRecognition()
+            speechRecognition()
 
         }
 
@@ -67,12 +59,10 @@ class MainActivity : BaseActivity() {
             serviceState = false
 
             toast("저장 후 녹음을 종료합니다.")
-            //if (recorderThread.state == Thread.State.RUNNABLE) {
-                recorderThread.serviceState = false
-                recorderThread.recorderHandler.sendEmptyMessage(0)
-                Log.d("test", "진행하다가 서브에게 종료신호 보냈다.")
-            //}
-            Log.d("test","서비스 종료")
+            recorderThread.serviceState = false
+            recorderThread.recorderHandler.sendEmptyMessage(0)
+            Log.d("test", "Main: Sub에게 종료신호 보냈다.")
+
         }
     }
 
@@ -103,7 +93,7 @@ class MainActivity : BaseActivity() {
     }
 
     fun speechRecognition() {
-        Log.d("test","speechRecognition() 시작")
+        Log.d("test","Main: 음성인식 시작")
         if (!speechServiceState) {
             speechServiceState = true
 
@@ -120,7 +110,6 @@ class MainActivity : BaseActivity() {
                 toast("예외처리 오류가 발생했습니다.")
                 Log.d("test", "예외처리 오류가 발생했습니다.")
             }
-            Log.d("test", "speechRecognition() 끝")
         }
     }
 
@@ -151,15 +140,15 @@ class MainActivity : BaseActivity() {
 
             speechServiceState = false
 
-            if (serviceState){
-                Thread.sleep(500)
-                toast("다시 실행합니다.")
-                speechRecognition()
-            }
+//            if (serviceState){
+//                Thread.sleep(500)
+//                toast("다시 실행합니다.")
+//                speechRecognition()
+//            }
         }
 
         override fun onResults(results: Bundle?) {
-            Log.d("test","onResults() 시작")
+            Log.d("test","Main: 음성인식 종료")
 
             recordedWords = results!!.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)!![0]
             binding.textView.text = recordedWords
@@ -167,16 +156,12 @@ class MainActivity : BaseActivity() {
 
             speechServiceState = false
 
-            if (serviceState) {
-                if (resultCheckwords) {
-                    Thread.sleep(30000)
-                    Log.d("test", "onResults() 음성인식 다시 시작")
-                    speechRecognition()
-                } else {
-                    Thread.sleep(500)
-                    Log.d("test", "onResults() 음성인식 다시 시작")
-                    speechRecognition()
-                }
+            toast("녹음을 시작합니다.")
+            Log.d("test", "Main: Sub 시작")
+            if (recorderThread.state == Thread.State.NEW) {
+                recorderThread.serviceState = true
+                recorderThread.start()
+                Log.d("test", "Main: Sub 상태 ${recorderThread.state}")
             }
         }
 
@@ -199,8 +184,8 @@ class MainActivity : BaseActivity() {
     }
 
     fun checkBadwords() {
-        Log.d("test","checkBadwords() 시작")
-        Log.d("test","들어온 말: ${recordedWords}")
+        Log.d("test","Main: 단어 판별 시작")
+        Log.d("test","Main: 들어온 말 [${recordedWords}]")
         for (badWord in badWordSet) {
             resultCheckwords = recordedWords!!.contains(badWord)
 
@@ -211,7 +196,7 @@ class MainActivity : BaseActivity() {
                 recorderThread.resultCheckWords = false
             }
         }
-        Log.d("test","checkBadwords() 종료")
-        Log.d("test","checkBadwords() 결과 ${recorderThread.resultCheckWords}")
+        Log.d("test","Main: 단어 판별 종료")
+        Log.d("test","Main: 단어 판별 결과 :${recorderThread.resultCheckWords}")
     }
 }
