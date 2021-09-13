@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application'
     id 'kotlin-android'
 }
+apply plugin: 'kotlin-android'
 
 android {
     buildFeatures {
@@ -49,4 +50,9 @@ dependencies {
     implementation 'com.google.android.gms:play-services-tasks:17.2.1'
     implementation 'org.tensorflow:tensorflow-lite-support:0.1.0'
     implementation 'org.tensorflow:tensorflow-lite-metadata:0.1.0'
+    implementation "androidx.core:core-ktx:+"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+}
+configurations.all {
+    resolutionStrategy { force 'androidx.core:core-ktx:1.6.0' }
 }
