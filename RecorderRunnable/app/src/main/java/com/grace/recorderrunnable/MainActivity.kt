@@ -1,12 +1,10 @@
 package com.grace.recorderrunnable
 
 import android.Manifest
+import android.annotation.TargetApi
 import android.content.Intent
+import android.os.*
 import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.os.Message
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -34,6 +32,12 @@ class MainActivity : BaseActivity() {
 
     var speechServiceState: Boolean = false
     var serviceState: Boolean = false
+    var SRhandler : Handler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            Log.d("test", "Main: 중간 점검 음성인식.")
+            speechRecognition()
+        }
+    }
 
     val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
 
@@ -140,11 +144,11 @@ class MainActivity : BaseActivity() {
 
             speechServiceState = false
 
-//            if (serviceState){
-//                Thread.sleep(500)
-//                toast("다시 실행합니다.")
-//                speechRecognition()
-//            }
+            if (serviceState){
+                Thread.sleep(500)
+                toast("다시 실행합니다.")
+                speechRecognition()
+            }
         }
 
         override fun onResults(results: Bundle?) {
@@ -163,6 +167,7 @@ class MainActivity : BaseActivity() {
                 recorderThread.start()
                 Log.d("test", "Main: Sub 상태 ${recorderThread.state}")
             }
+
         }
 
         override fun onPartialResults(partialResults: Bundle?) {
@@ -199,4 +204,23 @@ class MainActivity : BaseActivity() {
         Log.d("test","Main: 단어 판별 종료")
         Log.d("test","Main: 단어 판별 결과 :${recorderThread.resultCheckWords}")
     }
+
+//    internal class LooperThead : Thread() {
+//        override fun run() {
+//            Looper.prepare()
+//
+//            //현재 루퍼의 메세지큐를 얻는다 ==;
+//            val que = Looper.myQueue()
+//            que.addIdleHandler(object : MessageQueue.IdleHandler {
+//                @TargetApi(Build.VERSION_CODES.M)
+//                override fun queueIdle(): Boolean {
+//                    while (que.isIdle) {
+//                        speechRecognition()
+//                    }
+//                    return true //false반환하면 리스너해제
+//                }
+//            })
+//            Looper.loop()
+//        }
+//    }
 }
