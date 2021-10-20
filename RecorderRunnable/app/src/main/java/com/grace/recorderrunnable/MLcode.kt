@@ -108,25 +108,36 @@ class MLcode(private val context: Recorder) {
         var byteBuffer = ByteBuffer.allocateDirect(modelInputSize)
         byteBuffer.order(ByteOrder.nativeOrder())
 
+        val SAMPLE_RATE = 44100
+        val featureValues : FloatArray
+        featureValues = jLibrosa.loadAndRead(fileName, SAMPLE_RATE, -1)
 
         val wavFile = File(fileName)
         Log.d("test","Sub: 녹음파일 오픈")
-        val out = ByteArrayOutputStream()
-        val inputSt = BufferedInputStream(FileInputStream(wavFile))
+        //val out = ByteArrayOutputStream()
+        //val inputSt = BufferedInputStream(FileInputStream(wavFile))
 
         var read: Int
         Log.d("test","Sub: 녹음파일 읽는 중...")
         val buff = ByteArray(882000)
-        while (inputSt.read(buff).also { read = it } > 0) {
-            out.write(buff, 0, read)
-        }
-        out.flush()
-        val audioBytes: ByteArray = out.toByteArray()
+        //while (inputSt.read(buff).also { read = it } > 0) {
+         //   out.write(buff, 0, read)
+        //}
+        //out.flush()
+        val audioBytes: ByteArray = FloatArray2ByteArray(featureValues)
 
         Log.d("test","Sub: 녹음파일 변환 중...")
 
 
         return audioBytes
+    }
+
+    fun FloatArray2ByteArray(values: FloatArray): ByteArray {
+        val buffer = ByteBuffer.allocate(4 * values.size)
+        for (value in values) {
+            buffer.putFloat(value)
+        }
+        return buffer.array()
     }
 
     fun extendBuffer(buffer: ByteBuffer, size: Int): ByteBuffer? {
